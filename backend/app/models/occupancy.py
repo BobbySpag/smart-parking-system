@@ -1,9 +1,8 @@
 """OccupancyLog SQLAlchemy model."""
 import uuid
 from datetime import datetime
-from sqlalchemy import String, Boolean, DateTime, Float, ForeignKey
+from sqlalchemy import String, Boolean, DateTime, Float, ForeignKey, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.dialects.postgresql import UUID
 from datetime import timezone
 from ..database import Base
 
@@ -14,10 +13,10 @@ class OccupancyLog(Base):
     __tablename__ = "occupancy_logs"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True
+        Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True
     )
     space_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+        Uuid(as_uuid=True),
         ForeignKey("parking_spaces.id", ondelete="CASCADE"),
         nullable=False,
         index=True,

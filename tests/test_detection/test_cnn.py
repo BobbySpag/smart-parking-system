@@ -81,7 +81,15 @@ def test_build_cnn_model_compiles():
 def test_predict_single_image_output_shape():
     """predict returns a (batch, 1) shaped float array."""
     keras_mock, _ = _make_mock_keras()
-    with patch.dict("sys.modules", {"tensorflow": MagicMock(keras=keras_mock), "tensorflow.keras": keras_mock}):
+    cv2_mock = MagicMock()
+    cv2_mock.imread.return_value = np.zeros((150, 150, 3), dtype=np.uint8)
+    cv2_mock.cvtColor.return_value = np.zeros((150, 150, 3), dtype=np.uint8)
+    cv2_mock.resize.return_value = np.zeros((150, 150, 3), dtype=np.uint8)
+    with patch.dict("sys.modules", {
+        "tensorflow": MagicMock(keras=keras_mock),
+        "tensorflow.keras": keras_mock,
+        "cv2": cv2_mock,
+    }):
         import importlib
         import detection.cnn.predict as predict_module
         importlib.reload(predict_module)
@@ -89,10 +97,7 @@ def test_predict_single_image_output_shape():
         mock_model = MagicMock()
         mock_model.predict.return_value = np.array([[0.3]])
 
-        with patch("cv2.imread", return_value=np.zeros((150, 150, 3), dtype=np.uint8)), \
-             patch("cv2.cvtColor", return_value=np.zeros((150, 150, 3), dtype=np.uint8)), \
-             patch("cv2.resize", return_value=np.zeros((150, 150, 3), dtype=np.uint8)):
-            result = predict_module.predict_single_image(mock_model, "fake.jpg")
-            assert "is_occupied" in result
-            assert "confidence" in result
-            assert result["confidence"] == pytest.approx(0.3)
+        result = predict_module.predict_single_image(mock_model, "fake.jpg")
+        assert "is_occupied" in result
+        assert "confidence" in result
+        assert result["confidence"] == pytest.approx(0.3)
