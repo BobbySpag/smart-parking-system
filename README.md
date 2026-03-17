@@ -116,6 +116,93 @@ pip install -r tests/requirements.txt
 pytest tests/ -v --cov=backend/app --cov-report=term-missing
 ```
 
+## Deployment
+
+### Quick Deploy
+
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template?template=https://github.com/BobbySpag/smart-parking-system)
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/BobbySpag/smart-parking-system)
+
+---
+
+### Railway (Docker Compose – one click)
+
+1. Click the **Deploy on Railway** button above (or go to [railway.app](https://railway.app) → New Project → Deploy from GitHub Repo).
+2. Select `BobbySpag/smart-parking-system`. Railway will detect `railway.toml` and spin up all three services automatically.
+3. In the Railway dashboard, set the following **environment variables** on the **backend** service:
+   - `SECRET_KEY` – a strong random value (see [Environment Variables](#environment-variables) below)
+   - `POSTGRES_PASSWORD` – the password for the managed PostgreSQL service
+4. Railway automatically provisions public URLs for the backend and frontend. Copy the backend URL and set it as `REACT_APP_API_URL` on the **frontend** service.
+
+---
+
+### Render (Blueprint)
+
+1. Click the **Deploy to Render** button above (or go to [render.com](https://render.com) → New → Blueprint).
+2. Connect `BobbySpag/smart-parking-system`. Render will read `render.yaml` and create:
+   - A **PostgreSQL** database (`smart-parking-db`, free tier)
+   - A **Web Service** for the FastAPI backend
+   - A **Static Site** for the React frontend
+3. After the first deploy, copy the backend service URL (e.g. `https://smart-parking-backend.onrender.com`) and set it as `REACT_APP_API_URL` in the frontend service's environment variables, then trigger a redeploy of the frontend.
+4. **Important:** Render's free PostgreSQL databases expire after 90 days – upgrade to a paid plan for production use.
+
+---
+
+### Fly.io (Backend only)
+
+```bash
+# Install the Fly CLI
+curl -L https://fly.io/install.sh | sh
+
+# Authenticate
+fly auth login
+
+# Create and deploy the backend app (uses fly.toml at the repo root)
+fly launch --copy-config --name smart-parking-api
+fly secrets set SECRET_KEY="$(python -c 'import secrets; print(secrets.token_hex(32))')"
+fly secrets set DATABASE_URL="postgresql+asyncpg://<user>:<pass>@<host>:<port>/<db>"
+fly deploy
+```
+
+The `fly.toml` file is pre-configured with:
+- Internal port `8000`
+- Health check on `/health`
+- `shared-cpu-1x` VM with 256 MB RAM
+- Auto-stop / auto-start machines for cost efficiency
+
+---
+
+### Environment Variables
+
+| Variable | Required | Description | Example |
+|----------|----------|-------------|---------|
+| `DATABASE_URL` | ✅ | Async PostgreSQL connection string | `postgresql+asyncpg://user:pass@host/db` |
+| `SECRET_KEY` | ✅ | JWT signing secret – **use a strong random value in production** | `openssl rand -hex 32` |
+| `ALGORITHM` | ✅ | JWT algorithm | `HS256` |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | ✅ | Token TTL in minutes | `30` |
+| `DEBUG` | — | Enable debug mode (default `false`) | `false` |
+| `REACT_APP_API_URL` | ✅ (frontend) | Backend base URL used by the React app | `https://api.example.com` |
+| `REACT_APP_MAPBOX_TOKEN` | — | Mapbox public token for map tiles | `pk.ey...` |
+
+> ⚠️ **Security reminder:** Never commit a real `SECRET_KEY` to version control. Generate one with:
+> ```bash
+> python -c "import secrets; print(secrets.token_hex(32))"
+> ```
+> A production-ready template is available in [`.env.production.example`](.env.production.example).
+
+---
+
+### CI/CD (GitHub Actions)
+
+The repository includes a GitHub Actions workflow at `.github/workflows/ci-cd.yml` that:
+
+- **CI** (every push and PR to `main`): runs `pytest` against the backend and verifies the React app builds successfully.
+- **CD** (push to `main` only, after CI passes): triggers a Render deploy hook.
+
+To enable automatic deployment, add your Render deploy hook URL as a repository secret named `RENDER_DEPLOY_HOOK_URL` (Settings → Secrets and variables → Actions → New repository secret).
+
+---
+
 ## Contributing
 
 1. Fork the repository
