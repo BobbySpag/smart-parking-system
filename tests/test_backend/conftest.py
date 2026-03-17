@@ -1,7 +1,13 @@
 """pytest fixtures for backend tests."""
 import asyncio
+import os
 import uuid
 from typing import AsyncGenerator
+
+# Override DATABASE_URL before importing any app modules so the engine is
+# created with SQLite (no asyncpg dependency required in tests).
+os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///:memory:")
+
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
@@ -61,9 +67,10 @@ async def db() -> AsyncGenerator[AsyncSession, None]:
 
 @pytest_asyncio.fixture
 async def test_user(db: AsyncSession) -> User:
-    """Create and persist a test driver user."""
+    """Create and persist a test driver user with a unique email."""
+    unique = uuid.uuid4().hex[:8]
     user = User(
-        email="testdriver@example.com",
+        email=f"driver_{unique}@example.com",
         hashed_password=hash_password("Password1"),
         full_name="Test Driver",
         role=UserRole.driver,
@@ -76,9 +83,10 @@ async def test_user(db: AsyncSession) -> User:
 
 @pytest_asyncio.fixture
 async def test_admin(db: AsyncSession) -> User:
-    """Create and persist a test admin user."""
+    """Create and persist a test admin user with a unique email."""
+    unique = uuid.uuid4().hex[:8]
     user = User(
-        email="testadmin@example.com",
+        email=f"admin_{unique}@example.com",
         hashed_password=hash_password("AdminPass1"),
         full_name="Test Admin",
         role=UserRole.admin,
@@ -90,13 +98,13 @@ async def test_admin(db: AsyncSession) -> User:
 
 
 @pytest_asyncio.fixture
-def driver_auth_headers(test_user: User) -> dict:
+async def driver_auth_headers(test_user: User) -> dict:
     token = create_access_token({"sub": str(test_user.id), "role": test_user.role.value})
     return {"Authorization": f"Bearer {token}"}
 
 
 @pytest_asyncio.fixture
-def admin_auth_headers(test_admin: User) -> dict:
+async def admin_auth_headers(test_admin: User) -> dict:
     token = create_access_token({"sub": str(test_admin.id), "role": test_admin.role.value})
     return {"Authorization": f"Bearer {token}"}
 

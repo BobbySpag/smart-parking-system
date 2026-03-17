@@ -10,13 +10,17 @@ class Base(DeclarativeBase):
     pass
 
 
-engine = create_async_engine(
-    settings.DATABASE_URL,
-    echo=settings.DEBUG,
-    pool_pre_ping=True,
-    pool_size=10,
-    max_overflow=20,
-)
+def _make_engine():
+    """Create the async engine with dialect-appropriate settings."""
+    url = settings.DATABASE_URL
+    kwargs: dict = {"echo": settings.DEBUG, "pool_pre_ping": True}
+    if url.startswith("postgresql"):
+        kwargs["pool_size"] = 10
+        kwargs["max_overflow"] = 20
+    return create_async_engine(url, **kwargs)
+
+
+engine = _make_engine()
 
 AsyncSessionLocal = async_sessionmaker(
     bind=engine,

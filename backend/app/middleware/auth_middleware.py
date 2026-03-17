@@ -35,9 +35,9 @@ async def get_optional_current_user(
 
 def require_admin() -> User:
     """Shortcut dependency that requires the admin role."""
-    return Depends(require_roles(UserRole.admin))
+    return require_roles(UserRole.admin)
 
 
 def require_staff_or_admin():
     """Shortcut dependency that requires staff or admin role."""
-    return Depends(require_roles(UserRole.staff, UserRole.admin))
+    return require_roles(UserRole.staff, UserRole.admin)

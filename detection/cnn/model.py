@@ -1,6 +1,5 @@
 """CNN model architecture for parking space occupancy classification."""
-import numpy as np
-from typing import Optional, Tuple
+from typing import Tuple
 
 
 def build_cnn_model(input_shape: Tuple[int, int, int] = (150, 150, 3), dropout_rate: float = 0.5):

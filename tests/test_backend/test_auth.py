@@ -50,11 +50,11 @@ async def test_login_invalid_credentials(client: AsyncClient):
 
 
 @pytest.mark.asyncio
-async def test_get_me_authenticated(client: AsyncClient, driver_auth_headers: dict):
+async def test_get_me_authenticated(client: AsyncClient, driver_auth_headers: dict, test_user):
     response = await client.get("/api/auth/me", headers=driver_auth_headers)
     assert response.status_code == 200
     data = response.json()
-    assert data["email"] == "testdriver@example.com"
+    assert data["email"] == test_user.email
     assert data["role"] == "driver"
 
 

@@ -66,7 +66,7 @@ async def get_lot_occupancy_summary(db: AsyncSession, lot_id: uuid.UUID) -> dict
 
     occupied_result = await db.execute(
         select(func.count(ParkingSpace.id)).where(
-            ParkingSpace.lot_id == lot_id, ParkingSpace.is_occupied == True
+            ParkingSpace.lot_id == lot_id, ParkingSpace.is_occupied
         )
     )
     occupied = occupied_result.scalar() or 0

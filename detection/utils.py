@@ -133,7 +133,7 @@ def format_occupancy_summary(results: dict[str, dict]) -> str:
         f"Total spaces : {total}",
         f"Occupied     : {occupied}",
         f"Free         : {free}",
-        f"Occupancy    : {occupied / total:.1%}" if total else "Occupancy    : N/A",
+    f"Occupancy    : {occupied / total:.1%}" if total > 0 else "Occupancy    : N/A",
         "",
         "Per-space results:",
     ]

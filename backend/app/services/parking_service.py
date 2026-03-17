@@ -19,7 +19,7 @@ async def get_all_lots(db: AsyncSession) -> list[ParkingLotResponse]:
     """Return all active parking lots with computed occupancy counts."""
     result = await db.execute(
         select(ParkingLot)
-        .where(ParkingLot.is_active == True)
+        .where(ParkingLot.is_active)
         .order_by(ParkingLot.name)
     )
     lots = result.scalars().all()
@@ -110,7 +110,7 @@ async def _count_occupied(db: AsyncSession, lot_id: uuid.UUID) -> int:
     result = await db.execute(
         select(func.count(ParkingSpace.id)).where(
             ParkingSpace.lot_id == lot_id,
-            ParkingSpace.is_occupied == True,
+            ParkingSpace.is_occupied,
         )
     )
     return result.scalar() or 0
