@@ -4,7 +4,6 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Generator
 
-import cv2
 import numpy as np
 
 
@@ -38,6 +37,7 @@ def predict_single_image(
     Returns:
         Dict with keys ``image_path``, ``is_occupied``, ``confidence``.
     """
+    import cv2
     img = cv2.imread(image_path)
     if img is None:
         raise ValueError(f"Cannot load image: {image_path}")
@@ -75,6 +75,8 @@ def predict_batch(
     results: list[dict] = []
     images: list[np.ndarray] = []
     paths_buffer: list[str] = []
+
+    import cv2
 
     def _flush(imgs: list, paths: list) -> list[dict]:
         arr = np.stack(imgs, axis=0)
